@@ -45,25 +45,34 @@ DSH Web 面板一个 loopback 数据源，**零业务逻辑重写**。
 验收：`pytest` 通过；`echo initialize... | ai-butler-memory-mcp` 手测一轮
 initialize/tools/list。
 
-### P1 — 真实数据库联调
+### P1 — 真实数据库联调 ✅（2026-08-16 完成）
 
-1. `docker compose up -d postgres` + `ai-butler-db upgrade`；
-2. `ai-butler-admin bootstrap` 建用户，`add-device` 建 dsh-agent 设备；
-3. 填 `.env`，跑 `--transport stdio`，用 `printf` 发 `tools/call` 验证
-   memory_create → memory_search → memory_revise(revision 冲突) → archive；
-4. 跑 `--transport http`，curl 六个端点；确认非 loopback 绑定被拒。
+已按本阶段步骤全部执行并通过：
 
-验收：真实 PG 上走通写→搜→改→归档全链路；revision 冲突返回
-`revision_conflict`；设备不属于用户时写操作被框架拒绝。
+- `add-device` 注册 `dsh-agent`（kind=agent，memory:read/write）；
+- stdio 全链路：create → search → revise(r2) → 带旧 revision 的 revise 返回
+  `revision_conflict` → archive → `include_archived` 可见归档记录；
+- HTTP 六个端点 curl 全通；测试残留已归档清理（保留审计、不动真实记忆）。
 
-### P2 — 接入 DSH（配合 dsh-butler-memory）
+### P2 — 接入 DSH ✅（2026-08-16 完成，见附录联调速查）
 
-1. `dsh plugin add ../dsh-butler-memory`（或 `--patch` 本地 yml）；
-2. 验证 `mcp__butler__memory_*` 工具出现、跨会话召回成功（官方
-   examples/mcp-memory 的验证流程照搬）；
-3. 验证 Web 面板按钮与列表、候选 accept/reject。
+DSH agent（headless profile）经 `mcp__butler__memory_list` 成功召回真实
+记忆并总结；Web 面板在独立端口实例上完成渲染与数据链路验证。
 
-验收：DSH 会话 A 写入 → 会话 B 召回；面板刷新可见；候选接受后成为长期记忆。
+## 5. 附录：DSH 联调速查（真实踩坑记录）
+
+1. **协议版本**：DSH 自带 SDK 请求 `protocolVersion=2025-11-25`，服务器
+   必须支持（本包 `SUPPORTED_PROTOCOL_VERSIONS` 已含）。
+2. **环境变量不可靠**：DSH stdio 桥会清洗疑似凭据的环境变量且 spawn 的
+   cwd 任意；配置必须走 env 文件（`~/.config/butler-memory-mcp/.env` →
+   cwd `.env` → 环境变量兜底 + `--env-file` 覆盖）。
+3. **principal 用 device_id**：`add-device` 输出的 `device_id`（不是
+   `credential_id`）才是 `AI_BUTLER_MCP_DEVICE_ID`。
+4. **本地 dsh 启动四件套**：PATH 需含 pnpm（`corepack enable pnpm`）；
+   工作目录不能有含 `DEEPSEEK_*` 的 `.env`；从 harness 内启动需剥离
+   `DSH_SESSION_ID/DSH_SESSION_JSONL/DSH_SHELL/DSH_WEB_URL`；profile 必须
+   挂应用 bundle（`@deepseek-ai/dsh-headless` 或 `dsh-web-app`，内置包直接
+   写进 `dsh.profile.bundles`，不能用 `dsh plugin add` 装）。
 
 ### P3 — 发布与加固
 
