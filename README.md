@@ -31,6 +31,17 @@ DSH web 面板 ──(HTTP 127.0.0.1:8771)──► 同一进程、同一 princi
 
 ## 安装
 
+### 从 PyPI（发布后推荐）
+
+```bash
+pip install butler-memory-mcp
+```
+
+前置：`ai-butler-framework` 已发布到 PyPI（本包声明
+`ai-butler-framework>=0.1` 依赖）。
+
+### 本地开发（源码 checkout）
+
 ```bash
 cd ai-butler-framework && .venv/bin/pip install -e .     # 先装框架（本地开发）
 cd ../butler-memory-mcp && python3 -m venv .venv
