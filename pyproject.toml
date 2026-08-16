@@ -11,7 +11,10 @@ requires-python = ">=3.12"
 license = "Apache-2.0"
 authors = [{ name = "AI Butler Framework contributors" }]
 dependencies = [
-  "ai-butler-framework>=0.1",
+  # The lower bound includes a pre-release (0.1.0.dev0) so pip also accepts
+  # the upstream framework published under its current dev version number;
+  # it still matches any later stable release (0.1.0, 0.2.0, ...).
+  "ai-butler-framework>=0.1.0.dev0,<0.2",
   "fastapi>=0.139,<0.140",
   "uvicorn>=0.51,<0.52",
 ]
