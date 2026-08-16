@@ -9,6 +9,8 @@ dist/
 
 # Secrets / local configuration
 .env
+.env.pypi
+.pypirc
 
 # Editor
 .idea/
