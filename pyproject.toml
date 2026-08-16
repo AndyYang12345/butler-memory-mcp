@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "butler-memory-mcp"
+version = "0.1.0"
+description = "MCP bridge over the AI Butler Framework layered memory services"
+readme = "README.md"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+authors = [{ name = "AI Butler Framework contributors" }]
+dependencies = [
+  "ai-butler-framework>=0.1",
+  "fastapi>=0.139,<0.140",
+  "uvicorn>=0.51,<0.52",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=7.4,<9",
+]
+
+[project.scripts]
+ai-butler-memory-mcp = "ai_butler_memory_mcp.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+pythonpath = ["src"]
+testpaths = ["tests"]
