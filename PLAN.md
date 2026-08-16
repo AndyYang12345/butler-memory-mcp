@@ -74,12 +74,18 @@ DSH agent（headless profile）经 `mcp__butler__memory_list` 成功召回真实
    挂应用 bundle（`@deepseek-ai/dsh-headless` 或 `dsh-web-app`，内置包直接
    写进 `dsh.profile.bundles`，不能用 `dsh plugin add` 装）。
 
-### P3 — 发布与加固
+### P3 — 发布与加固 ✅（vendoring 自包含已完成）
 
-1. 上游 `ai-butler-framework` 发布 PyPI 后，本包声明正式依赖并发布；
-2. 补 DSH `ask-user` 确认对接（写操作前弹确认）作为可选开关；
-3. 等待框架 P9 备份/轮换后补迁移与恢复演练说明；
-4. 商标/命名检查（"ai-butler" 为临时名，见上游 README Naming status）。
+1. ✅ 记忆领域代码 vendored 进包内（`vendored/`），运行时零依赖
+   `ai-butler-framework`——**框架不上 PyPI、零改动、零发布**；
+2. ✅ 漂移治理：`VENDORED.md` 上游清单 + `scripts/check-vendored.py`
+   SHA-256 基线检查（已验证能检出人为改动）；
+3. 待办：补 DSH `ask-user` 确认对接（写操作前弹确认）作为可选开关；
+4. 待办：等待框架 P9 备份/轮换后补迁移与恢复演练说明；
+5. 待办：商标/命名检查（"ai-butler" 为临时名，见上游 README Naming status）。
+
+**发布路径（现在只有两站）**：`pip install butler-memory-mcp`（PyPI）与
+`dsh plugin add dsh-butler-memory`（npm），无需发布框架。
 
 ## 4. 风险与已定边界
 
@@ -87,5 +93,6 @@ DSH agent（headless profile）经 `mcp__butler__memory_list` 成功召回真实
 |---|---|
 | MCP 写入无浏览器级确认 | 工具描述硬约束 + public/internal 封顶 + 审计留痕；P3 接 ask-user |
 | 单 principal 被多个客户端共享 | v0.1 定位单用户本机；多映射需框架侧"凭据→principal"设计 |
-| 框架 schema 升级 | 本包 pin `ai-butler-framework>=0.1`，运行前框架 readiness 校验 head |
+| 上游 schema 升级 | vendored 模型与上游逐字一致；漂移检查提示重新同步；运行前框架 readiness 校验 head |
 | 面板 HTTP 无认证 | 仅 loopback 绑定 + 只读 + 候选决定；公网形态留到框架 P10 |
+| vendored 代码漂移 | `check-vendored.py` 基线检查；同步步骤见 VENDORED.md |
