@@ -20,8 +20,8 @@ from .operations import MemoryOperations
 from .tools import build_tools
 from . import __version__
 
-from ai_butler_runtime.config import ConfigurationError
-from ai_butler_runtime.persistence.database import Database
+from .vendored.config import ConfigurationError
+from .vendored.database import Database
 
 
 def _is_loopback(host: str) -> bool:

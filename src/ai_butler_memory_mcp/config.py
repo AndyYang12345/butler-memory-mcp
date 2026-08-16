@@ -14,8 +14,8 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from uuid import UUID
 
-from ai_butler_runtime.config import ConfigurationError, load_dotenv
-from ai_butler_runtime.persistence.database import DatabaseConfig
+from .vendored.config import ConfigurationError, load_dotenv
+from .vendored.database import DatabaseConfig
 
 ENV_FILE_CANDIDATES = (
     "BUTLER_MEMORY_MCP_ENV_FILE",

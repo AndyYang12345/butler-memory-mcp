@@ -14,7 +14,7 @@
 > Layered long-term memory for AI agents as an MCP server — PostgreSQL-backed,
 > versioned, audited. Agents remember only what you explicitly asked.
 
-Butler 分层记忆的 **MCP 桥**：把 [ai-butler-framework](../ai-butler-framework) 的
+Butler 分层记忆的 **MCP 桥**：把 ai-butler-framework 的
 `MemoryService` / `LayeredMemoryService` 以标准 MCP 工具暴露给任何 MCP 客户端
 （DSH、Claude Code、Codex 等），同时提供一个仅限 loopback 的 HTTP API 供
 DSH Web 面板（`dsh-butler-memory`）读取。
@@ -24,10 +24,16 @@ DSH agent ──(MCP stdio)──► ai-butler-memory-mcp ──► MemoryServic
 DSH web 面板 ──(HTTP 127.0.0.1:8771)──► 同一进程、同一 principal
 ```
 
-## 为什么是"桥"而不是重写
+## 自包含分发（vendored）
 
-本包**不含任何记忆业务逻辑**。归属校验、敏感度上限、revision 乐观锁、
-审计与证据同事务、Schema 迁移全部继承自框架，本包只做协议映射与错误翻译。
+本包**运行时零依赖 ai-butler-framework**：所需的记忆领域代码
+（`MemoryService`/`LayeredMemoryService`/ORM 模型/数据库与配置辅助）以
+vendoring 方式内置于 `ai_butler_memory_mcp/vendored/`，归属校验、敏感度上限、
+revision 乐观锁、审计与证据同事务等语义与上游**逐字一致**。上游文件清单、
+行号区间与漂移检查见 [VENDORED.md](VENDORED.md)（`scripts/check-vendored.py`）。
+
+Schema 迁移仍由 ai-butler-framework 的部署负责（`ai-butler-db upgrade`）；
+本包只连接已有数据库，不创建、不修改 schema。
 
 ## 安装
 
@@ -37,14 +43,10 @@ DSH web 面板 ──(HTTP 127.0.0.1:8771)──► 同一进程、同一 princi
 pip install butler-memory-mcp
 ```
 
-前置：`ai-butler-framework` 已发布到 PyPI（本包声明
-`ai-butler-framework>=0.1` 依赖）。
-
 ### 本地开发（源码 checkout）
 
 ```bash
-cd ai-butler-framework && .venv/bin/pip install -e .     # 先装框架（本地开发）
-cd ../butler-memory-mcp && python3 -m venv .venv
+cd butler-memory-mcp && python3 -m venv .venv
 .venv/bin/pip install -e '.[dev]'
 ```
 
@@ -93,7 +95,8 @@ MCP 而放松。
 ## 测试
 
 ```bash
-.venv/bin/pytest     # 离线协议测试；领域行为由框架自身测试覆盖
+.venv/bin/pytest     # 离线协议测试；vendored 领域代码与上游逐字一致
+.venv/bin/python scripts/check-vendored.py --upstream ../ai-butler-framework   # 漂移检查
 ```
 
 ## License
@@ -103,7 +106,7 @@ MCP 而放松。
 
 ## 相关项目
 
-- `ai-butler-framework` — 记忆领域服务的实现方（owner/revision/audit 语义的
-  权威来源，本包通过 `ai-butler-framework` 依赖直接调用其服务层）；
+- `ai-butler-framework` — 记忆领域服务的上游实现方（owner/revision/audit
+  语义的权威来源；本包 vendoring 其记忆领域代码并做漂移检查）；
 - [dsh-butler-memory](https://github.com/AndyYang12345/dsh-butler-memory) —
   DeepSeek Harness 接入组合包：agent 工具 + Web 记忆面板。

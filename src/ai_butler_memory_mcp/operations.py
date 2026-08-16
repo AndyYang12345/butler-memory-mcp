@@ -1,9 +1,9 @@
 """Memory operations for the Butler Memory MCP bridge.
 
-A thin adapter over the accepted Butler Framework services. No business
-logic lives here: ownership, sensitivity ceilings, revision conflicts,
-audit and evidence stay enforced inside
-``ai_butler_runtime.persistence.services.MemoryService`` and
+A thin adapter over the vendored Butler Framework memory services. No
+business logic lives here: ownership, sensitivity ceilings, revision
+conflicts, audit and evidence stay enforced inside
+``ai_butler_memory_mcp.vendored.memory_service.MemoryService`` and
 ``LayeredMemoryService``. The bridge only maps MCP-shaped inputs to those
 calls, normalizes outputs, and translates framework errors into codes that
 are safe to show to a calling agent.
@@ -14,16 +14,17 @@ from __future__ import annotations
 from typing import Any
 from uuid import UUID, uuid4
 
-from ai_butler_runtime.memory_tools import memory_output, memory_revision_output
-from ai_butler_runtime.persistence.database import Database
-from ai_butler_runtime.persistence.memory_services import LayeredMemoryService
-from ai_butler_runtime.persistence.models import (
+from .vendored.serializers import memory_output, memory_revision_output
+from .vendored.database import Database
+from .vendored.layered_memory import LayeredMemoryService
+from .vendored.models import (
+    MemoryCandidateStatus,
     MemoryEvidenceType,
     MemoryKind,
     MemorySensitivity,
     MemoryWriteMode,
 )
-from ai_butler_runtime.persistence.services import (
+from .vendored.memory_service import (
     AuthorizationError,
     InvalidMemoryError,
     MemoryService,
@@ -286,8 +287,6 @@ class MemoryOperations:
 
 
 def _candidate_status_from_string(value: str):
-    from ai_butler_runtime.persistence.models import MemoryCandidateStatus
-
     try:
         return MemoryCandidateStatus(value)
     except ValueError as exc:
