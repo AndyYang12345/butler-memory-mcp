@@ -1,5 +1,19 @@
 # butler-memory-mcp
 
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.12%2B-blue)](pyproject.toml)
+[![MCP](https://img.shields.io/badge/MCP-stdio-brightgreen)](https://modelcontextprotocol.io)
+
+> **给你的 AI agent 一份真正属于你的长期记忆。** 一个 MCP 服务器，把你明确要求
+> 记住的事实、偏好和项目上下文写入**你自己的 PostgreSQL**——每次写入带修订历史
+> 与审计证据，检索自动按敏感度过滤。模型不能静默写入；推断出的东西只会变成
+> 等你决定的候选。接任何 MCP 客户端即用。
+
+## 仓库简介
+
+> Layered long-term memory for AI agents as an MCP server — PostgreSQL-backed,
+> versioned, audited. Agents remember only what you explicitly asked.
+
 Butler 分层记忆的 **MCP 桥**：把 [ai-butler-framework](../ai-butler-framework) 的
 `MemoryService` / `LayeredMemoryService` 以标准 MCP 工具暴露给任何 MCP 客户端
 （DSH、Claude Code、Codex 等），同时提供一个仅限 loopback 的 HTTP API 供
@@ -70,3 +84,15 @@ MCP 而放松。
 ```bash
 .venv/bin/pytest     # 离线协议测试；领域行为由框架自身测试覆盖
 ```
+
+## License
+
+[Apache License 2.0](LICENSE)，与上游 ai-butler-framework 一致。本项目不包含
+任何专有模型或素材；发布衍生作品时请保留许可与署名要求。
+
+## 相关项目
+
+- `ai-butler-framework` — 记忆领域服务的实现方（owner/revision/audit 语义的
+  权威来源，本包通过 `ai-butler-framework` 依赖直接调用其服务层）；
+- [dsh-butler-memory](https://github.com/AndyYang12345/dsh-butler-memory) —
+  DeepSeek Harness 接入组合包：agent 工具 + Web 记忆面板。
