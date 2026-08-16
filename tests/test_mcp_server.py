@@ -51,13 +51,13 @@ def test_initialize_negotiates_protocol_version():
             "id": 1,
             "method": "initialize",
             "params": {
-                "protocolVersion": "2025-06-18",
+                "protocolVersion": "2025-11-25",
                 "capabilities": {},
-                "clientInfo": {"name": "dsh", "version": "0.1.0"},
+                "clientInfo": {"name": "dsh", "version": "0.1.0-rc.6"},
             },
         },
     )
-    assert response["result"]["protocolVersion"] == "2025-06-18"
+    assert response["result"]["protocolVersion"] == "2025-11-25"
     assert response["result"]["serverInfo"]["name"] == "test-memory"
     assert response["result"]["capabilities"]["tools"]["listChanged"] is False
     assert "instructions" in response["result"]

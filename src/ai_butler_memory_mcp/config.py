@@ -14,8 +14,35 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from uuid import UUID
 
-from ai_butler_runtime.config import ConfigurationError
+from ai_butler_runtime.config import ConfigurationError, load_dotenv
 from ai_butler_runtime.persistence.database import DatabaseConfig
+
+ENV_FILE_CANDIDATES = (
+    "BUTLER_MEMORY_MCP_ENV_FILE",
+    "~/.config/butler-memory-mcp/.env",
+    ".env",
+)
+
+
+def load_bridge_env(env_file: str | None = None) -> None:
+    """Load configuration from the first available source.
+
+    Order: an explicit ``--env-file`` argument, the
+    ``BUTLER_MEMORY_MCP_ENV_FILE`` variable, the XDG-style user config file,
+    then ``.env`` in the working directory. ``load_dotenv`` never overrides
+    existing process variables, so real environment values keep winning.
+    This matters for DSH: the stdio bridge scrubs credential-shaped ambient
+    variables and spawns with an arbitrary cwd, so the env file is the
+    reliable channel.
+    """
+
+    candidates = [env_file] if env_file else []
+    candidates.append(os.environ.get("BUTLER_MEMORY_MCP_ENV_FILE"))
+    candidates.append(os.path.expanduser("~/.config/butler-memory-mcp/.env"))
+    candidates.append(".env")
+    for candidate in candidates:
+        if candidate:
+            load_dotenv(candidate)
 
 
 @dataclass(frozen=True, slots=True)
@@ -51,7 +78,8 @@ class BridgeConfig:
                 "  ai-butler-admin add-device --user-id <USER_UUID> "
                 "--device-name dsh-agent --device-kind agent "
                 "--scope memory:read --scope memory:write\n"
-                "and copy the returned credential UUID into these variables."
+                "and copy the printed device_id (NOT the credential_id) into "
+                "AI_BUTLER_MCP_DEVICE_ID."
             ) from exc
 
         return cls(

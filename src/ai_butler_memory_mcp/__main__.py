@@ -14,13 +14,13 @@ import sys
 
 import uvicorn
 
-from .config import BridgeConfig
+from .config import BridgeConfig, load_bridge_env
 from .mcp_server import StdioMcpServer
 from .operations import MemoryOperations
 from .tools import build_tools
 from . import __version__
 
-from ai_butler_runtime.config import ConfigurationError, load_dotenv
+from ai_butler_runtime.config import ConfigurationError
 from ai_butler_runtime.persistence.database import Database
 
 
@@ -47,6 +47,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=None)
+    parser.add_argument(
+        "--env-file",
+        default=None,
+        help="Explicit .env file; otherwise the standard candidates are tried.",
+    )
     return parser.parse_args(argv)
 
 
@@ -99,13 +104,13 @@ def run_http(config: BridgeConfig, host: str, port: int) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
     try:
-        load_dotenv()
+        load_bridge_env(args.env_file)
         config = BridgeConfig.from_environment()
     except ConfigurationError as exc:
         print(f"Configuration error: {exc}", file=sys.stderr)
         return 2
-    args = parse_args(argv)
     if args.transport == "http":
         return run_http(config, args.host, args.port or config.http_port)
     return run_stdio(config)
