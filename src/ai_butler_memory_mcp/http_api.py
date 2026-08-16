@@ -19,7 +19,9 @@ _BRIDGE_STATUS = {
     "resource_not_found": status.HTTP_404_NOT_FOUND,
     "revision_conflict": status.HTTP_409_CONFLICT,
     "memory_access_denied": status.HTTP_403_FORBIDDEN,
-    "invalid_request": status.HTTP_422_UNPROCESSABLE_ENTITY,
+    # Literal 422 keeps compatibility with both the deprecated
+    # HTTP_422_UNPROCESSABLE_ENTITY and the newer *_CONTENT constant.
+    "invalid_request": 422,
 }
 
 

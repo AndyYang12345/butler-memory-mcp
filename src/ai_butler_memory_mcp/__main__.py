@@ -99,6 +99,10 @@ def run_http(config: BridgeConfig, host: str, port: int) -> int:
         log_level="info",
         proxy_headers=False,
         server_header=False,
+        # The panel API is plain REST: disable the websocket protocol so
+        # startup never imports a websockets library (system installs may
+        # carry an old version whose API uvicorn no longer accepts).
+        ws="none",
     )
     return 0
 
