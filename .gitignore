@@ -9,7 +9,7 @@ dist/
 
 # Secrets / local configuration
 .env
-.env.pypi
+.pypi
 .pypirc
 
 # Editor
