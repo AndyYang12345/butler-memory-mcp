@@ -105,6 +105,37 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Grant one scope (repeatable); defaults to the framework set.",
     )
 
+    setup = subparsers.add_parser(
+        "setup-docker",
+        help="One-command PostgreSQL setup: start a docker container, "
+        "write the env file, create the schema, and bootstrap the principal.",
+    )
+    setup.add_argument(
+        "--container-name",
+        default="ai-butler-pg",
+        help="Docker container name (default: ai-butler-pg).",
+    )
+    setup.add_argument(
+        "--port",
+        type=int,
+        default=5432,
+        help="Host port bound to 127.0.0.1 (default: 5432).",
+    )
+    setup.add_argument(
+        "--password",
+        default=None,
+        help="PostgreSQL password for a NEW container; generated when omitted.",
+    )
+    setup.add_argument("--user-name", default="博士")
+    setup.add_argument("--device-name", default="dsh-agent")
+    setup.add_argument("--device-kind", default="agent")
+    setup.add_argument(
+        "--scope",
+        action="append",
+        default=[],
+        help="Grant one scope (repeatable); defaults to memory:read/write.",
+    )
+
     return parser.parse_args(argv)
 
 
@@ -208,6 +239,14 @@ def run_admin_bootstrap(config: DatabaseConfig, args: argparse.Namespace) -> int
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
+
+    # setup-docker must run BEFORE the required-configuration check: it
+    # exists precisely for machines where no env file exists yet.
+    if args.command == "setup-docker":
+        from .docker_setup import run_setup_docker
+
+        return run_setup_docker(args)
+
     try:
         load_bridge_env(args.env_file)
         database_config = DatabaseConfig.from_environment(required=True)
