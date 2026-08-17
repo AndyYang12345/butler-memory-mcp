@@ -37,6 +37,10 @@ def load_bridge_env(env_file: str | None = None) -> None:
     """
 
     candidates = [env_file] if env_file else []
+    if env_file and not os.path.isfile(env_file):
+        # An explicitly requested env file must exist: silently falling
+        # back to another candidate would run against the WRONG database.
+        raise ConfigurationError(f"env file does not exist: {env_file}")
     candidates.append(os.environ.get("BUTLER_MEMORY_MCP_ENV_FILE"))
     candidates.append(os.path.expanduser("~/.config/butler-memory-mcp/.env"))
     candidates.append(".env")

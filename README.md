@@ -50,29 +50,46 @@ cd butler-memory-mcp && python3 -m venv .venv
 .venv/bin/pip install -e '.[dev]'
 ```
 
-## 配置
+## 首次初始化（自举，无需 ai-butler-framework）
 
-复制 `.env.example` 为 `.env`，填三个值：
-
-1. `AI_BUTLER_DATABASE_URL` — 与框架共用的 PostgreSQL；
-2. `AI_BUTLER_MCP_USER_ID` — 记忆属主（`ai-butler-admin bootstrap` 输出）；
-3. `AI_BUTLER_MCP_DEVICE_ID` — 桥作为该用户的一台**持久设备**：
+全新用户三步即可用：
 
 ```bash
-.venv/bin/ai-butler-admin add-device \
-  --user-id <USER_UUID> \
-  --device-name dsh-agent --device-kind agent \
+# 1. 建表（对已迁移的库是安全 no-op，只建缺失表）
+ai-butler-memory-mcp initdb
+
+# 2. 创建属主用户与桥设备（token 只显示一次）
+ai-butler-memory-mcp admin bootstrap \
+  --user-name 博士 --device-name dsh-agent --device-kind agent \
   --scope memory:read --scope memory:write
+# 输出 user_id / device_id / device_token
+
+# 3. 把 user_id / device_id 填进配置
 ```
 
-写操作只有在这台设备真实属于该用户时才会被框架接受——身份与审计不因
+## 配置
+
+把环境配置放进 `~/.config/butler-memory-mcp/.env`（DSH 的 stdio 桥会清洗
+疑似凭据的环境变量，env 文件是可靠通道）：
+
+```dotenv
+AI_BUTLER_DATABASE_URL=postgresql+asyncpg://ai_butler:密码@127.0.0.1:5432/ai_butler
+AI_BUTLER_MCP_USER_ID=<bootstrap 输出的 user_id>
+AI_BUTLER_MCP_DEVICE_ID=<bootstrap 输出的 device_id>
+```
+
+**与 ai-butler-framework 共用同一数据库**的部署无需 initdb/bootstrap：
+沿用框架的 `ai-butler-db upgrade` 迁移和 `ai-butler-admin add-device` 注册，
+把打印的 `user_id`/`device_id` 填进上面两个变量即可。
+
+写操作只有在这台设备真实属于该用户时才会被接受——身份与审计不因
 MCP 而放松。
 
 ## 运行
 
 ```bash
-.venv/bin/ai-butler-memory-mcp                # stdio MCP（给 agent 用）
-.venv/bin/ai-butler-memory-mcp --transport http --port 8771   # 面板 API
+ai-butler-memory-mcp                       # stdio MCP（给 agent 用，DSH 会自动 spawn）
+ai-butler-memory-mcp --transport http --port 8771   # 面板 API（0.1.2+ 的 DSH 插件已不需要）
 ```
 
 ## 暴露的工具（DSH 中为 mcp__butler__memory_*）

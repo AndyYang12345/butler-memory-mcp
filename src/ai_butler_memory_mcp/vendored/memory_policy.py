@@ -16,6 +16,17 @@ from typing import Any
 
 from .models import MemoryKind, MemoryLifecycle, MemoryPolicyAction, MemorySensitivity
 
+_SPACE = re.compile(r"\s+")
+_SECRET = re.compile(
+    r"(?:api[ _-]?key|access[ _-]?token|refresh[ _-]?token|session[ _-]?cookie|"
+    r"password|passwd|密码|口令|私钥|密钥|-----BEGIN [A-Z ]+ PRIVATE KEY-----)",
+    re.IGNORECASE,
+)
+_PRIVATE = re.compile(
+    r"(?:身份证|银行卡|信用卡|病历|诊断|工资|收入|经纬度|家庭住址|精确位置)",
+    re.IGNORECASE,
+)
+
 _SYNONYMS = {
     "简短": "简洁",
     "精简": "简洁",
