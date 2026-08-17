@@ -21,7 +21,7 @@ DSH Web 面板（`dsh-butler-memory`）读取。
 
 ```text
 DSH agent ──(MCP stdio)──► ai-butler-memory-mcp ──► MemoryService ──► PostgreSQL
-DSH web 面板 ──(HTTP 127.0.0.1:8771)──► 同一进程、同一 principal
+DSH web 面板 ──(插件托管 stdio)──► 同一进程、同一 principal
 ```
 
 ## 自包含分发（vendored）
@@ -52,7 +52,24 @@ cd butler-memory-mcp && python3 -m venv .venv
 
 ## 首次初始化（自举，无需 ai-butler-framework）
 
-全新用户三步即可用：
+### 方式一：一键起库（推荐，Docker 用户）
+
+前提：已安装并启动 Docker（Windows/macOS 为 Docker Desktop）。
+
+```bash
+ai-butler-memory-mcp setup-docker
+```
+
+这一条命令完成全部部署：创建/复用 PostgreSQL 容器 → 等待就绪 → 写入
+`~/.config/butler-memory-mcp/.env`（自动生成密码，权限 600）→ 建 schema →
+创建属主用户与桥设备并打印一次性 token。可重复执行（幂等：容器已运行则
+复用，身份已配置则跳过）。
+
+常用参数：`--container-name`（默认 `ai-butler-pg`）、`--port`（默认 5432）、
+`--password`（新容器密码，缺省自动生成）、`--user-name`/`--device-name`/
+`--scope`。
+
+### 方式二：已有 PostgreSQL（三步手动）
 
 ```bash
 # 1. 建表（对已迁移的库是安全 no-op，只建缺失表）
@@ -70,7 +87,7 @@ ai-butler-memory-mcp admin bootstrap \
 ## 配置
 
 把环境配置放进 `~/.config/butler-memory-mcp/.env`（DSH 的 stdio 桥会清洗
-疑似凭据的环境变量，env 文件是可靠通道）：
+疑似凭据的环境变量，env 文件是可靠通道；`setup-docker` 会自动生成它）：
 
 ```dotenv
 AI_BUTLER_DATABASE_URL=postgresql+asyncpg://ai_butler:密码@127.0.0.1:5432/ai_butler
@@ -101,7 +118,7 @@ ai-butler-memory-mcp --transport http --port 8771   # 面板 API（0.1.2+ 的 DS
 | `memory_create` / `memory_revise` / `memory_archive` | 显式写入，revision 绑定 | public/internal 封顶 |
 | `memory_candidates` / `memory_candidate_accept` / `memory_candidate_reject` | 推断候选，绝不静默入库 | — |
 
-## 当前边界（v0.1 刻意取舍）
+## 当前边界（v0.2 刻意取舍）
 
 - **无浏览器式强确认**：MCP 写入依赖工具描述约束（"仅当用户明确要求"）+ 敏感度
   封顶，不等于框架 Web 端的 L2 确认卡片。后续可接 DSH `ask-user`。
