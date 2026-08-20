@@ -10,9 +10,6 @@ readme = "README.md"
 requires-python = ">=3.12"
 license = "Apache-2.0"
 authors = [{ name = "AI Butler Framework contributors" }]
-
-[project.urls]
-Repository = "https://github.com/AndyYang12345/butler-memory-mcp"
 dependencies = [
   # Self-contained: the memory domain code is vendored under
   # ai_butler_memory_mcp/vendored/ (see VENDORED.md), so this package does
@@ -23,6 +20,9 @@ dependencies = [
   "fastapi>=0.139,<0.140",
   "uvicorn>=0.51,<0.52",
 ]
+
+[project.urls]
+Repository = "https://github.com/AndyYang12345/butler-memory-mcp"
 
 [project.optional-dependencies]
 dev = [
